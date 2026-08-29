@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37531.7
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelpDesk.Api", "HelpDesk.Api\HelpDesk.Api.csproj", "{7ACB9620-E886-4BB7-A1A8-C03854685A2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelpDesk.Api.Tests", "HelpDesk.Api.Tests\HelpDesk.Api.Tests.csproj", "{AA388691-3015-4EFD-AE1D-A1C2DF53F86E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{84D27F74-D2BA-6C25-2661-968F101900D9}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7ACB9620-E886-4BB7-A1A8-C03854685A2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7ACB9620-E886-4BB7-A1A8-C03854685A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7ACB9620-E886-4BB7-A1A8-C03854685A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7ACB9620-E886-4BB7-A1A8-C03854685A2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA388691-3015-4EFD-AE1D-A1C2DF53F86E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA388691-3015-4EFD-AE1D-A1C2DF53F86E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA388691-3015-4EFD-AE1D-A1C2DF53F86E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA388691-3015-4EFD-AE1D-A1C2DF53F86E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {77C7E17D-7D28-49C0-B4BD-E9C296ACE117}
+	EndGlobalSection
+EndGlobal
