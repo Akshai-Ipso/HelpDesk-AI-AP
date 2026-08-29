@@ -1,0 +1,28 @@
+﻿namespace HelpDesk.Api.Models
+
+    {
+        public class Ticket
+        {
+            public int Id { get; set; }
+
+            public string Titel { get; set; } = string.Empty;
+
+            public string Beschreibung { get; set; } = string.Empty;
+
+            public string Kategorie { get; set; } = string.Empty;
+
+            public string Prioritaet { get; set; } = string.Empty;
+
+            public string Status { get; set; } = string.Empty;
+
+            public string ErstelltVon { get; set; } = string.Empty;
+
+            public DateTime ErstelltAm { get; set; }
+
+            public DateTime? GeschlossenAm { get; set; }
+
+        public ICollection<TicketAntwort> Antworten { get; set; }
+         = new List<TicketAntwort>();
+
+    }
+    }
