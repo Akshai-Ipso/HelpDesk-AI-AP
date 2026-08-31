@@ -9,13 +9,16 @@ namespace HelpDesk.Api.Services
     {
         private readonly HelpDeskDbContext _dbContext;
         private readonly IKiAntwortGenerator _kiAntwortGenerator;
+        private readonly ILogger<TicketService> _logger;
 
         public TicketService(
             HelpDeskDbContext dbContext,
-            IKiAntwortGenerator kiAntwortGenerator)
+            IKiAntwortGenerator kiAntwortGenerator,
+            ILogger<TicketService> logger)
         {
             _dbContext = dbContext;
             _kiAntwortGenerator = kiAntwortGenerator;
+            _logger = logger;
         }
 
         public async Task<PagedResultDto<TicketDto>> TicketsAbrufenAsync(
@@ -151,6 +154,12 @@ namespace HelpDesk.Api.Services
             _dbContext.Tickets.Add(ticket);
             await _dbContext.SaveChangesAsync();
 
+            _logger.LogInformation(
+                "Ticket {TicketId} wurde von {ErstelltVon} erstellt. Status: {Status}",
+                ticket.Id,
+                ticket.ErstelltVon,
+                ticket.Status);
+
             return ZuDto(ticket);
         }
 
@@ -164,6 +173,8 @@ namespace HelpDesk.Api.Services
             {
                 return null;
             }
+
+            var vorherigerStatus = ticket.Status;
 
             ticket.Titel = dto.Titel;
             ticket.Beschreibung = dto.Beschreibung;
@@ -185,6 +196,19 @@ namespace HelpDesk.Api.Services
             }
 
             await _dbContext.SaveChangesAsync();
+
+            if (!string.Equals(
+                vorherigerStatus,
+                ticket.Status,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation(
+                    "Status von Ticket {TicketId} wurde von {AlterStatus} " +
+                    "auf {NeuerStatus} geändert.",
+                    ticket.Id,
+                    vorherigerStatus,
+                    ticket.Status);
+            }
 
             return ZuDto(ticket);
         }
@@ -242,7 +266,9 @@ namespace HelpDesk.Api.Services
                 return null;
             }
 
-            PruefeObTicketGeschlossenIst(ticket);
+            PruefeObTicketGeschlossenIst(
+            ticket,
+            "Manuelle Antwort");
 
             var antwort = new TicketAntwort
             {
@@ -269,7 +295,13 @@ namespace HelpDesk.Api.Services
                 return null;
             }
 
-            PruefeObTicketGeschlossenIst(ticket);
+            _logger.LogInformation(
+            "KI-Vorschlag für Ticket {TicketId} wurde angefordert.",
+            ticket.Id);
+
+                    PruefeObTicketGeschlossenIst(
+                        ticket,
+                        "KI-Vorschlag");
 
             var text = await _kiAntwortGenerator
                 .GeneriereVorschlagAsync(
@@ -288,6 +320,12 @@ namespace HelpDesk.Api.Services
 
             _dbContext.TicketAntworten.Add(antwort);
             await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "KI-Vorschlag {AntwortId} für Ticket {TicketId} " +
+                "wurde generiert und gespeichert.",
+                antwort.Id,
+                ticket.Id);
 
             return ZuDto(antwort);
         }
@@ -312,14 +350,21 @@ namespace HelpDesk.Api.Services
             return true;
         }
 
-        private static void PruefeObTicketGeschlossenIst(
-            Ticket ticket)
+        private void PruefeObTicketGeschlossenIst(
+            Ticket ticket,
+            string vorgang)
         {
             if (string.Equals(
                 ticket.Status,
                 "Geschlossen",
                 StringComparison.OrdinalIgnoreCase))
             {
+                _logger.LogWarning(
+                    "{Vorgang} für geschlossenes Ticket {TicketId} " +
+                    "wurde abgelehnt.",
+                    vorgang,
+                    ticket.Id);
+
                 throw new TicketGeschlossenException(ticket.Id);
             }
         }
