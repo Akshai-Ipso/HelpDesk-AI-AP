@@ -1,13 +1,12 @@
 using HelpDesk.Api.Data;
 using HelpDesk.Api.Services;
 using Microsoft.EntityFrameworkCore;
-using HelpDesk.Api.Services;
 using HelpDesk.Api.Middleware;
 using System.Reflection;
 
 namespace HelpDesk.Api
 {
-    public class Program
+    public partial class Program
     {
         public static void Main(string[] args)
         {
@@ -16,6 +15,12 @@ namespace HelpDesk.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services
+                .AddAuthentication("ApiKey")
+                .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions,
+                    ApiKeyAuthenticationHandler>("ApiKey", _ => { });
+            builder.Services.AddAuthorization();
 
             var connectionString = builder.Configuration
             .GetConnectionString("DefaultConnection")
@@ -57,6 +62,7 @@ namespace HelpDesk.Api
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

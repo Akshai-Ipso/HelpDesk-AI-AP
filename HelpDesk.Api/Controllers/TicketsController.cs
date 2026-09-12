@@ -1,7 +1,9 @@
 ﻿using HelpDesk.Api.DTOs;
 using HelpDesk.Api.Models;
 using HelpDesk.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Sockets;
 
 namespace HelpDesk.Api.Controllers
@@ -75,7 +77,8 @@ namespace HelpDesk.Api.Controllers
             StatusCodes.Status404NotFound)]
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<TicketDto>> GetTicket(int id)
+        public async Task<ActionResult<TicketDto>> GetTicket(
+            [Range(1, int.MaxValue)] int id)
         {
             var ticket =
                 await _ticketService.TicketAbrufenAsync(id);
@@ -168,6 +171,7 @@ namespace HelpDesk.Api.Controllers
             StatusCodes.Status404NotFound)]
 
         [HttpDelete("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> TicketLoeschen(int id)
         {
             var geloescht =
