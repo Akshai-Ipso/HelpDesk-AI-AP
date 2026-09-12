@@ -10,6 +10,7 @@ namespace HelpDesk.Api.Services
     {
         private readonly IConfiguration _configuration;
 
+#pragma warning disable CS0618 // .NET 8 exposes only the ISystemClock constructor.
         public ApiKeyAuthenticationHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
@@ -20,6 +21,7 @@ namespace HelpDesk.Api.Services
         {
             _configuration = configuration;
         }
+#pragma warning restore CS0618
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {

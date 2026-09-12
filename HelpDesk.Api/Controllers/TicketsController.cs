@@ -132,6 +132,7 @@ namespace HelpDesk.Api.Controllers
         /// <response code="200">Das Ticket wurde aktualisiert.</response>
         /// <response code="400">Die Eingabedaten sind ungültig.</response>
         /// <response code="404">Das Ticket wurde nicht gefunden.</response>
+        /// <param name="dto">Die aktualisierten Ticketdaten.</param>
         [ProducesResponseType(
             typeof(TicketDto),
             StatusCodes.Status200OK)]
@@ -231,6 +232,7 @@ namespace HelpDesk.Api.Controllers
         /// <response code="400">Die Eingabedaten sind ungültig.</response>
         /// <response code="404">Das Ticket wurde nicht gefunden.</response>
         /// <response code="409">Das Ticket ist bereits geschlossen.</response>
+        /// <param name="dto">Die Daten der manuellen Antwort.</param>
         [ProducesResponseType(
             typeof(AntwortDto),
             StatusCodes.Status201Created)]
