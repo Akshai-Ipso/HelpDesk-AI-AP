@@ -21,7 +21,7 @@ Stand: 12.09.2026
 
 | Vorher | Nachher |
 |---|---|
-| Veralteter `ISystemClock`-Konstruktor im Auth-Handler | Aktueller `TimeProvider`-Konstruktor |
+| Warnung am .NET-8-Authentifizierungskonstruktor | Verwendung von `ISystemClock` mit lokaler `CS0618`-Begründung; die .NET-8-API bietet hier noch keine `TimeProvider`-Überladung |
 | Fehlende XML-Parameterdokumentation für zwei Controller-Methoden | `dto`-Parameter mit `<param>` dokumentiert |
 | Keine zentrale Formatierungs- und Namenskonfiguration | `.editorconfig` im Solution-Root aktiviert |
 | API-Key in Entwicklungs-Konfiguration | Schlüssel aus JSON entfernt und auf Umgebungsvariable umgestellt |
