@@ -32,18 +32,18 @@ sein.
 
 | Methode und Route | Erwartung | Screenshot |
 |---|---:|---|
-| `GET /api/tickets` | 200 | [01-GET-alle-tickets.png](../Screenshots%20Testing/01-GET-alle-tickets.png) |
-| `GET /api/tickets/{id}` | 200 oder 404 | [02-GET-einzelnes-ticket.png](../Screenshots%20Testing/02-GET-einzelnes-ticket.png) |
-| `POST /api/tickets` | 201 | [03-POST-ticket-erstellen.png](../Screenshots%20Testing/03-POST-ticket-erstellen.png) |
-| `PUT /api/tickets/{id}` | 200, `GeschlossenAm` gesetzt | [04-PUT-ticket-schliessen.png](../Screenshots%20Testing/04-PUT-ticket-schliessen.png) |
-| `GET /api/tickets/{id}/antworten` | 200 | [05-GET-ticket-antworten.png](../Screenshots%20Testing/05-GET-ticket-antworten.png) |
-| `POST /api/tickets/{id}/antworten` | 201 | [06-POST-manuelle-antwort.png](../Screenshots%20Testing/06-POST-manuelle-antwort.png) |
-| `POST /api/tickets/{id}/ki-vorschlag` | 201 | [07-POST-ki-vorschlag.png](../Screenshots%20Testing/07-POST-ki-vorschlag.png) |
-| Antwort bei geschlossenem Ticket | 409 | [08-POST-antwort-geschlossen-409.png](../Screenshots%20Testing/08-POST-antwort-geschlossen-409.png) |
-| `DELETE /api/tickets/{id}` mit `X-API-Key` | 204 | [09-DELETE-ticket-204.png](../Screenshots%20Testing/09-DELETE-ticket-204.png) |
-| `DELETE /api/tickets/{id}/antworten/{antwortId}` mit `X-API-Key` | 204 | [10-DELETE-antwort-204.png](../Screenshots%20Testing/10-DELETE-antwort-204.png) |
-| `DELETE /api/tickets/{id}` ohne `X-API-Key` | 401 | [11-DELETE-ohne-api-key-401.png](../Screenshots%20Testing/11-DELETE-ohne-api-key-401.png) |
-| KI-Vorschlag bei geschlossenem Ticket | 409 | [12-POST-ki-geschlossen-409.png](../Screenshots%20Testing/12-POST-ki-geschlossen-409.png) |
+| `GET /api/tickets` | 200 | [01-GET-alle-tickets.png](Screenshots%20Testing/01-GET-alle-tickets.png) |
+| `GET /api/tickets/{id}` | 200 oder 404 | [02-GET-einzelnes-ticket.png](Screenshots%20Testing/02-GET-einzelnes-ticket.png) |
+| `POST /api/tickets` | 201 | [03-POST-ticket-erstellen.png](Screenshots%20Testing/03-POST-ticket-erstellen.png) |
+| `PUT /api/tickets/{id}` | 200, `GeschlossenAm` gesetzt | [04-PUT-ticket-schliessen.png](Screenshots%20Testing/04-PUT-ticket-schliessen.png) |
+| `GET /api/tickets/{id}/antworten` | 200 | [05-GET-ticket-antworten.png](Screenshots%20Testing/05-GET-ticket-antworten.png) |
+| `POST /api/tickets/{id}/antworten` | 201 | [06-POST-manuelle-antwort.png](Screenshots%20Testing/06-POST-manuelle-antwort.png) |
+| `POST /api/tickets/{id}/ki-vorschlag` | 201 | [07-POST-ki-vorschlag.png](Screenshots%20Testing/07-POST-ki-vorschlag.png) |
+| Antwort bei geschlossenem Ticket | 409 | [08-POST-antwort-geschlossen-409.png](Screenshots%20Testing/08-POST-antwort-geschlossen-409.png) |
+| `DELETE /api/tickets/{id}` mit `X-API-Key` | 204 | [09-DELETE-ticket-204.png](Screenshots%20Testing/09-DELETE-ticket-204.png) |
+| `DELETE /api/tickets/{id}/antworten/{antwortId}` mit `X-API-Key` | 204 | [10-DELETE-antwort-204.png](Screenshots%20Testing/10-DELETE-antwort-204.png) |
+| `DELETE /api/tickets/{id}` ohne `X-API-Key` | 401 | [11-DELETE-ohne-api-key-401.png](Screenshots%20Testing/11-DELETE-ohne-api-key-401.png) |
+| KI-Vorschlag bei geschlossenem Ticket | 409 | [12-POST-ki-geschlossen-409.png](Screenshots%20Testing/12-POST-ki-geschlossen-409.png) |
 
 ## Änderungsprotokoll
 
