@@ -46,6 +46,55 @@ Alternativ kann das API-Projekt im Terminal gestartet werden:
 ```bash
 dotnet run --project HelpDesk.Api
 
+## Authentifizierung und Rollen
+
+Die API verwendet JWT-Bearer-Authentifizierung. Ein Token wird über
+folgenden Endpunkt angefordert:
+
+```text
+POST /api/auth/login
+```
+
+Für die lokale Demonstration sind zwei Testbenutzer in der
+`appsettings.json` hinterlegt:
+
+| Benutzername | Passwort | Rolle |
+|---|---|---|
+| `support` | `Support123!` | Support-Mitarbeiter |
+| `teamleitung` | `Team123!` | Teamleitung |
+
+Beispiel für die Anmeldung:
+
+```json
+{
+  "benutzername": "support",
+  "passwort": "Support123!"
+}
+```
+
+Bei erfolgreicher Anmeldung liefert die API ein JWT, den
+Gültigkeitszeitpunkt und die Rolle des Benutzers zurück. Das Token ist
+standardmäßig 60 Minuten gültig.
+
+Alle Ticket-Endpunkte erfordern ein gültiges JWT. Beide Rollen dürfen
+Tickets lesen, erstellen und aktualisieren sowie Antworten und
+KI-Vorschläge erstellen.
+
+Die folgenden Endpunkte dürfen ausschließlich mit der Rolle
+`Teamleitung` ausgeführt werden:
+
+- `DELETE /api/tickets/{id}`
+- `DELETE /api/tickets/{id}/antworten/{antwortId}`
+
+Die Autorisierung wurde über Swagger nachgewiesen:
+
+- Zugriff ohne Token: `401 Unauthorized`
+- Löschzugriff als Support-Mitarbeiter: `403 Forbidden`
+- Löschzugriff als Teamleitung: `204 No Content`
+
+In Swagger wird das vom Login-Endpunkt erhaltene JWT über die
+Schaltfläche **Authorize** eingetragen.
+
 ## KI-Antwortvorschläge
 
 Für die KI-Vorschlagsfunktion wurde Variante B, eine simulierte

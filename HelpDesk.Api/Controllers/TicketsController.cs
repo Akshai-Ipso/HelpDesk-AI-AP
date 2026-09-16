@@ -10,6 +10,8 @@ namespace HelpDesk.Api.Controllers
 {
     [ApiController]
     [Route("api/tickets")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public class TicketsController : ControllerBase
     {
         private readonly ITicketService _ticketService;
@@ -170,9 +172,10 @@ namespace HelpDesk.Api.Controllers
         [ProducesResponseType(
             typeof(ProblemDetails),
             StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
 
         [HttpDelete("{id:int}")]
-        [Authorize]
+        [Authorize(Roles = "Teamleitung")]
         public async Task<IActionResult> TicketLoeschen(int id)
         {
             var geloescht =
@@ -328,8 +331,10 @@ namespace HelpDesk.Api.Controllers
         [ProducesResponseType(
             typeof(ProblemDetails),
             StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
 
         [HttpDelete("{id:int}/antworten/{antwortId:int}")]
+        [Authorize(Roles = "Teamleitung")]
         public async Task<IActionResult> AntwortLoeschen(
             int id,
             int antwortId)
