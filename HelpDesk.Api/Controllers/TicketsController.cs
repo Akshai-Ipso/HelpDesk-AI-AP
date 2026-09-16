@@ -154,10 +154,10 @@ namespace HelpDesk.Api.Controllers
                 await _ticketService.TicketAktualisierenAsync(id, dto);
 
             if (ticket is null)
-{
-    return NichtGefunden(
-        $"Das Ticket mit der ID {id} wurde nicht gefunden.");
-}
+            {
+                return NichtGefunden(
+                    $"Das Ticket mit der ID {id} wurde nicht gefunden.");
+            }
 
             return Ok(ticket);
         }

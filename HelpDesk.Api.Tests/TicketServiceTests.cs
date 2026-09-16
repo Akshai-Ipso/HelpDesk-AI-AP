@@ -1,4 +1,4 @@
-using HelpDesk.Api.Data;
+﻿using HelpDesk.Api.Data;
 using HelpDesk.Api.DTOs;
 using HelpDesk.Api.Models;
 using HelpDesk.Api.Services;

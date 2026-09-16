@@ -299,9 +299,9 @@ namespace HelpDesk.Api.Services
             "KI-Vorschlag für Ticket {TicketId} wurde angefordert.",
             ticket.Id);
 
-                    PruefeObTicketGeschlossenIst(
-                        ticket,
-                        "KI-Vorschlag");
+            PruefeObTicketGeschlossenIst(
+                ticket,
+                "KI-Vorschlag");
 
             var text = await _kiAntwortGenerator
                 .GeneriereVorschlagAsync(

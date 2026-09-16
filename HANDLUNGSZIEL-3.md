@@ -1,6 +1,6 @@
-# Handlungsziel 3: Anforderungen überprüfen und Korrekturen
+﻿# Handlungsziel 3: Anforderungen überprüfen und Korrekturen
 
-Stand: 11.09.2026
+Stand: 16.09.2026
 
 ## Automatisierte Tests
 
@@ -21,7 +21,9 @@ Abhängigkeit.
 | `GeschlossenAm` beim Statuswechsel | `TicketServiceTests.StatuswechselAufGeschlossenSetztGeschlossenAm` |
 | KI-Aufruf mit Test-Doppelgänger | `TicketServiceTests.KiVorschlagVerwendetTestDoppelgaenger` |
 | End-to-end Ticket erstellen, Liste, Statuswechsel | `TicketsApiTests` |
-| Nicht autorisierter Zugriff | `TicketsApiTests.LoeschenOhneApiKeyWirdNichtAutorisiert` |
+| Nicht autorisierter Zugriff ohne JWT | `TicketsApiTests.LoeschenOhneTokenWirdNichtAutorisiert` |
+| Zugriff mit falscher Rolle | `TicketsApiTests.LoeschenMitSupportRolleWirdVerboten` |
+| Zugriff mit Teamleitung | `TicketsApiTests.LoeschenMitTeamleitungIstErlaubt` |
 | Leerer Titel, leerer Antworttext, negative ID | `TicketsApiTests` |
 
 ## Manuelle Endpunktprüfung
@@ -32,6 +34,7 @@ sein.
 
 | Methode und Route | Erwartung | Screenshot |
 |---|---:|---|
+| `POST /api/auth/login` als Teamleitung | 200 | [00-login-teamleitung-200.png](Screenshots%20Testing/6.6%20Authentifizierung/00-login-teamleitung-200.png) |
 | `GET /api/tickets` | 200 | [01-GET-alle-tickets.png](Screenshots%20Testing/01-GET-alle-tickets.png) |
 | `GET /api/tickets/{id}` | 200 oder 404 | [02-GET-einzelnes-ticket.png](Screenshots%20Testing/02-GET-einzelnes-ticket.png) |
 | `POST /api/tickets` | 201 | [03-POST-ticket-erstellen.png](Screenshots%20Testing/03-POST-ticket-erstellen.png) |
@@ -39,10 +42,11 @@ sein.
 | `GET /api/tickets/{id}/antworten` | 200 | [05-GET-ticket-antworten.png](Screenshots%20Testing/05-GET-ticket-antworten.png) |
 | `POST /api/tickets/{id}/antworten` | 201 | [06-POST-manuelle-antwort.png](Screenshots%20Testing/06-POST-manuelle-antwort.png) |
 | `POST /api/tickets/{id}/ki-vorschlag` | 201 | [07-POST-ki-vorschlag.png](Screenshots%20Testing/07-POST-ki-vorschlag.png) |
+| `DELETE /api/tickets/{id}/antworten/{antwortId}` | 204 | [10-DELETE-antwort-204.png](Screenshots%20Testing/10-DELETE-antwort-204.png) |
 | Antwort bei geschlossenem Ticket | 409 | [08-POST-antwort-geschlossen-409.png](Screenshots%20Testing/08-POST-antwort-geschlossen-409.png) |
-| `DELETE /api/tickets/{id}` mit `X-API-Key` | 204 | [09-DELETE-ticket-204.png](Screenshots%20Testing/09-DELETE-ticket-204.png) |
-| `DELETE /api/tickets/{id}/antworten/{antwortId}` mit `X-API-Key` | 204 | [10-DELETE-antwort-204.png](Screenshots%20Testing/10-DELETE-antwort-204.png) |
-| `DELETE /api/tickets/{id}` ohne `X-API-Key` | 401 | [11-DELETE-ohne-api-key-401.png](Screenshots%20Testing/11-DELETE-ohne-api-key-401.png) |
+| `DELETE /api/tickets/{id}` als Teamleitung | 204 | [03-teamleitung-loeschen-204.png](Screenshots%20Testing/6.6%20Authentifizierung/03-teamleitung-loeschen-204.png) |
+| `DELETE /api/tickets/{id}` als Support-Mitarbeiter | 403 | [02-support-loeschen-403.png](Screenshots%20Testing/6.6%20Authentifizierung/02-support-loeschen-403.png) |
+| `GET /api/tickets` ohne JWT | 401 | [01-ohne-token-401.png](Screenshots%20Testing/6.6%20Authentifizierung/01-ohne-token-401.png) |
 | KI-Vorschlag bei geschlossenem Ticket | 409 | [12-POST-ki-geschlossen-409.png](Screenshots%20Testing/12-POST-ki-geschlossen-409.png) |
 
 ## Änderungsprotokoll
@@ -50,6 +54,7 @@ sein.
 | Datum | Befund | Korrektur |
 |---|---|---|
 | 11.09.2026 | Zentrale Geschäftslogik war nicht automatisiert geprüft. | Unit-Tests mit SQLite-In-Memory und Fake-KI ergänzt. |
-| 11.09.2026 | Kein End-to-end-Test und kein Authentifizierungsnachweis vorhanden. | `WebApplicationFactory`-Tests und API-Key-Schutz für Löschroute ergänzt. |
+| 11.09.2026 | Kein End-to-end-Test und kein Authentifizierungsnachweis vorhanden. | `WebApplicationFactory`-Tests und ein erster Zugriffsschutz ergänzt. |
 | 11.09.2026 | Leere Pflichtfelder und negative IDs waren nicht als Testfälle dokumentiert. | Drei Negativtests sowie `[Range]`-Validierung für Ticket-IDs ergänzt. |
 | 11.09.2026 | Manuelle Prüfung und Konfliktfall waren nicht festgehalten. | Testmatrix mit Request, erwarteter Antwort und Screenshot-Spalte ergänzt. |
+| 16.09.2026 | Integrationstests verwendeten noch die frühere API-Key-Authentifizierung. | Tests auf JWT-Login und die Rollen Support-Mitarbeiter und Teamleitung umgestellt. |

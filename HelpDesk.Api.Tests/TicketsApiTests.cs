@@ -1,4 +1,5 @@
-using System.Net;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using HelpDesk.Api.Data;
 using HelpDesk.Api.DTOs;
@@ -8,6 +9,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace HelpDesk.Api.Tests;
 
@@ -23,6 +25,8 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task PostTicketErstelltTicketEndToEnd()
     {
+        await AnmeldenAsync();
+
         var response = await _client.PostAsJsonAsync(
             "/api/tickets",
             NeuesTicket());
@@ -35,6 +39,8 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task GetTicketsLiefertListeEndToEnd()
     {
+        await AnmeldenAsync();
+
         var response = await _client.GetAsync("/api/tickets");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -43,6 +49,8 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task PutAufGeschlossenSetztZeitpunktEndToEnd()
     {
+        await AnmeldenAsync();
+
         var create = await _client.PostAsJsonAsync(
             "/api/tickets",
             NeuesTicket());
@@ -67,6 +75,8 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task AntwortAufGeschlossenemTicketLiefertConflict()
     {
+        await AnmeldenAsync();
+
         var create = await _client.PostAsJsonAsync(
             "/api/tickets",
             NeuesTicket());
@@ -95,7 +105,7 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task LoeschenOhneApiKeyWirdNichtAutorisiert()
+    public async Task LoeschenOhneTokenWirdNichtAutorisiert()
     {
         var response = await _client.DeleteAsync("/api/tickets/1");
 
@@ -103,8 +113,36 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task LoeschenMitSupportRolleWirdVerboten()
+    {
+        await AnmeldenAsync();
+
+        var response = await _client.DeleteAsync("/api/tickets/1");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task LoeschenMitTeamleitungIstErlaubt()
+    {
+        await AnmeldenAsync("teamleitung", "Team123!");
+
+        var create = await _client.PostAsJsonAsync(
+            "/api/tickets",
+            NeuesTicket());
+        var ticket = await create.Content.ReadFromJsonAsync<TicketDto>();
+
+        var response = await _client.DeleteAsync(
+            $"/api/tickets/{ticket!.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
     public async Task LeererTitelWirdAbgelehnt()
     {
+        await AnmeldenAsync();
+
         var ticket = NeuesTicket();
         ticket.Titel = string.Empty;
 
@@ -116,6 +154,8 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task LeererAntworttextWirdAbgelehnt()
     {
+        await AnmeldenAsync();
+
         var create = await _client.PostAsJsonAsync(
             "/api/tickets",
             NeuesTicket());
@@ -135,9 +175,35 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task NegativeTicketIdWirdNichtGefunden()
     {
+        await AnmeldenAsync();
+
         var response = await _client.GetAsync("/api/tickets/-1");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private async Task AnmeldenAsync(
+        string benutzername = "support",
+        string passwort = "Support123!")
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginAnfrageDto
+            {
+                Benutzername = benutzername,
+                Passwort = passwort
+            });
+
+        response.EnsureSuccessStatusCode();
+
+        var login = await response.Content
+            .ReadFromJsonAsync<LoginAntwortDto>();
+
+        Assert.NotNull(login);
+        Assert.False(string.IsNullOrWhiteSpace(login.Token));
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", login.Token);
     }
 
     private static TicketErstellenDto NeuesTicket() => new()
@@ -152,13 +218,31 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
 
 public sealed class ApiFactory : WebApplicationFactory<HelpDesk.Api.Program>
 {
+    private const string TestJwtKey =
+        "HelpDesk-Integrationstest-Schluessel-2026-123456";
+
     private readonly SqliteConnection _connection =
         new("Data Source=:memory:");
+
+    private readonly string? _urspruenglicherJwtKey =
+        Environment.GetEnvironmentVariable("Jwt__Key");
+
+    public ApiFactory()
+    {
+        Environment.SetEnvironmentVariable("Jwt__Key", TestJwtKey);
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _connection.Open();
-        builder.UseEnvironment("Development");
+
+        builder.UseEnvironment("Testing");
+
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+        });
+
         builder.ConfigureServices(services =>
         {
             var descriptor = services.SingleOrDefault(
@@ -188,5 +272,8 @@ public sealed class ApiFactory : WebApplicationFactory<HelpDesk.Api.Program>
     {
         base.Dispose(disposing);
         _connection.Dispose();
+        Environment.SetEnvironmentVariable(
+            "Jwt__Key",
+            _urspruenglicherJwtKey);
     }
 }
