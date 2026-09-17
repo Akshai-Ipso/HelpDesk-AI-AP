@@ -272,3 +272,77 @@ Verwendete HTTP-Statuscodes sind unter anderem:
 - angeforderte und generierte KI-Vorschläge
 - abgelehnte Antworten
 - unerwartete Fehler
+
+## Testabdeckung
+
+Die automatisierten Tests verwenden eine SQLite-In-Memory-Datenbank.
+Der KI-Aufruf wird über `FakeKiAntwortGenerator` ohne externe Abhängigkeit
+geprüft.
+
+| Bereich | Nachweis |
+|---|---|
+| Antwort zu offenem Ticket | `TicketServiceTests.AntwortZuOffenemTicketWirdGespeichert` |
+| Antwort zu geschlossenem Ticket | `TicketServiceTests.AntwortZuGeschlossenemTicketWirdAbgelehnt` |
+| `GeschlossenAm` beim Statuswechsel | `TicketServiceTests.StatuswechselAufGeschlossenSetztGeschlossenAm` |
+| KI-Aufruf mit Test-Doppelgänger | `TicketServiceTests.KiVorschlagVerwendetTestDoppelgaenger` |
+| End-to-end Ticket erstellen, Liste und Statuswechsel | `TicketsApiTests` |
+| Zugriff ohne JWT | `TicketsApiTests.LoeschenOhneTokenWirdNichtAutorisiert` |
+| Zugriff mit falscher Rolle | `TicketsApiTests.LoeschenMitSupportRolleWirdVerboten` |
+| Zugriff mit Teamleitung | `TicketsApiTests.LoeschenMitTeamleitungIstErlaubt` |
+| Leerer Titel, leerer Antworttext und negative ID | `TicketsApiTests` |
+
+## Manuelle Endpunktprüfung
+
+Die Endpunkte wurden über Swagger mit positiven, negativen und
+Konfliktfällen geprüft.
+
+| Methode und Route | Erwartung | Screenshot |
+|---|---:|---|
+| `POST /api/auth/login` als Teamleitung | 200 | [00-login-teamleitung-200.png](Screenshots%20Testing/6.6%20Authentifizierung/00-login-teamleitung-200.png) |
+| `GET /api/tickets` | 200 | [01-GET-alle-tickets.png](Screenshots%20Testing/01-GET-alle-tickets.png) |
+| `GET /api/tickets/{id}` | 200 oder 404 | [02-GET-einzelnes-ticket.png](Screenshots%20Testing/02-GET-einzelnes-ticket.png) |
+| `POST /api/tickets` | 201 | [03-POST-ticket-erstellen.png](Screenshots%20Testing/03-POST-ticket-erstellen.png) |
+| `PUT /api/tickets/{id}` | 200, `GeschlossenAm` gesetzt | [04-PUT-ticket-schliessen.png](Screenshots%20Testing/04-PUT-ticket-schliessen.png) |
+| `GET /api/tickets/{id}/antworten` | 200 | [05-GET-ticket-antworten.png](Screenshots%20Testing/05-GET-ticket-antworten.png) |
+| `POST /api/tickets/{id}/antworten` | 201 | [06-POST-manuelle-antwort.png](Screenshots%20Testing/06-POST-manuelle-antwort.png) |
+| `POST /api/tickets/{id}/ki-vorschlag` | 201 | [07-POST-ki-vorschlag.png](Screenshots%20Testing/07-POST-ki-vorschlag.png) |
+| `DELETE /api/tickets/{id}/antworten/{antwortId}` | 204 | [10-DELETE-antwort-204.png](Screenshots%20Testing/10-DELETE-antwort-204.png) |
+| Antwort bei geschlossenem Ticket | 409 | [08-POST-antwort-geschlossen-409.png](Screenshots%20Testing/08-POST-antwort-geschlossen-409.png) |
+| `DELETE /api/tickets/{id}` als Teamleitung | 204 | [03-teamleitung-loeschen-204.png](Screenshots%20Testing/6.6%20Authentifizierung/03-teamleitung-loeschen-204.png) |
+| `DELETE /api/tickets/{id}` als Support-Mitarbeiter | 403 | [02-support-loeschen-403.png](Screenshots%20Testing/6.6%20Authentifizierung/02-support-loeschen-403.png) |
+| `GET /api/tickets` ohne JWT | 401 | [01-ohne-token-401.png](Screenshots%20Testing/6.6%20Authentifizierung/01-ohne-token-401.png) |
+| KI-Vorschlag bei geschlossenem Ticket | 409 | [12-POST-ki-geschlossen-409.png](Screenshots%20Testing/12-POST-ki-geschlossen-409.png) |
+
+## Coderichtlinien und Prüfung
+
+- Die zentrale `.editorconfig` gilt für API- und Testprojekt.
+- `EnableNETAnalyzers` und `AnalysisMode=Recommended` aktivieren die
+  integrierten .NET-Analyzer.
+- Typen und öffentliche Mitglieder verwenden PascalCase.
+- Parameter verwenden camelCase.
+- Die Einrückung erfolgt mit vier Leerzeichen.
+- JSON-Dateien verwenden zwei Leerzeichen Einrückung.
+- JWT-Signaturschlüssel werden nicht versioniert, sondern über User Secrets
+  oder `Jwt__Key` bereitgestellt.
+
+Die Qualitätsprüfung erfolgt mit:
+
+```powershell
+dotnet build .\HelpDesk.sln --no-restore --no-incremental
+dotnet test .\HelpDesk.Api.Tests\HelpDesk.Api.Tests.csproj --no-restore
+dotnet format .\HelpDesk.sln whitespace --no-restore --verify-no-changes
+```
+
+Der Build läuft ohne Warnungen durch. Alle 15 Tests und die
+Whitespace-Formatprüfung sind erfolgreich.
+
+## Änderungsprotokoll
+
+| Datum | Befund | Korrektur |
+|---|---|---|
+| 11.09.2026 | Zentrale Geschäftslogik war nicht automatisiert geprüft. | Unit-Tests mit SQLite-In-Memory und Fake-KI ergänzt. |
+| 11.09.2026 | Kein End-to-end-Test und kein Authentifizierungsnachweis vorhanden. | `WebApplicationFactory`-Tests und ein erster Zugriffsschutz ergänzt. |
+| 11.09.2026 | Leere Pflichtfelder und negative IDs waren nicht als Testfälle dokumentiert. | Negativtests und `[Range]`-Validierung ergänzt. |
+| 11.09.2026 | Manuelle Prüfung und Konfliktfall waren nicht dokumentiert. | Testmatrix mit Request, Antwort und Screenshots ergänzt. |
+| 16.09.2026 | Integrationstests verwendeten noch die frühere API-Key-Authentifizierung. | Tests auf JWT-Login und beide Rollen umgestellt. |
+| 16.09.2026 | JWT-Schlüssel befand sich in der Konfigurationsdatei. | Schlüssel entfernt, ersetzt und lokal über User Secrets gespeichert. |
