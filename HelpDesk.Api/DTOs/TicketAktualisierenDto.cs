@@ -25,23 +25,35 @@ namespace HelpDesk.Api.DTOs
 
         /// <summary>
         /// Kategorie des Supportfalls.
+        /// Zulässig: Hardware, Software, Netzwerk, Zugriffsrechte oder Sonstiges.
         /// </summary>
         /// <example>Hardware</example>
         [Required(ErrorMessage = "Die Kategorie ist erforderlich.")]
+        [RegularExpression(
+            "^(Hardware|Software|Netzwerk|Zugriffsrechte|Sonstiges)$",
+            ErrorMessage = "Die Kategorie muss Hardware, Software, Netzwerk, Zugriffsrechte oder Sonstiges sein.")]
         public string Kategorie { get; set; } = string.Empty;
 
         /// <summary>
         /// Priorität des Tickets.
+        /// Zulässig: Niedrig, Mittel, Hoch oder Kritisch.
         /// </summary>
         /// <example>Hoch</example>
         [Required(ErrorMessage = "Die Priorität ist erforderlich.")]
+        [RegularExpression(
+            "^(Niedrig|Mittel|Hoch|Kritisch)$",
+            ErrorMessage = "Die Priorität muss Niedrig, Mittel, Hoch oder Kritisch sein.")]
         public string Prioritaet { get; set; } = string.Empty;
 
         /// <summary>
         /// Aktueller Bearbeitungsstatus.
+        /// Zulässig: Offen, InBearbeitung, Gelöst oder Geschlossen.
         /// </summary>
         /// <example>Geschlossen</example>
         [Required(ErrorMessage = "Der Status ist erforderlich.")]
+        [RegularExpression(
+            "^(Offen|InBearbeitung|Gelöst|Geschlossen)$",
+            ErrorMessage = "Der Status muss Offen, InBearbeitung, Gelöst oder Geschlossen sein.")]
         public string Status { get; set; } = string.Empty;
     }
 }

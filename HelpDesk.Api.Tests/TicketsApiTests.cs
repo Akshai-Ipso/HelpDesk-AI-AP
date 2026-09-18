@@ -73,6 +73,49 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task VorgegebeneDatenwerteKoennenAktualisiertWerden()
+    {
+        await AnmeldenAsync();
+
+        var create = await _client.PostAsJsonAsync(
+            "/api/tickets",
+            NeuesTicket());
+        var ticket = await create.Content.ReadFromJsonAsync<TicketDto>();
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/tickets/{ticket!.Id}",
+            new TicketAktualisierenDto
+            {
+                Titel = ticket.Titel,
+                Beschreibung = ticket.Beschreibung,
+                Kategorie = "Zugriffsrechte",
+                Prioritaet = "Kritisch",
+                Status = "InBearbeitung"
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var aktualisiert = await response.Content.ReadFromJsonAsync<TicketDto>();
+        Assert.Equal("Zugriffsrechte", aktualisiert!.Kategorie);
+        Assert.Equal("Kritisch", aktualisiert.Prioritaet);
+        Assert.Equal("InBearbeitung", aktualisiert.Status);
+
+        var geloestResponse = await _client.PutAsJsonAsync(
+            $"/api/tickets/{ticket.Id}",
+            new TicketAktualisierenDto
+            {
+                Titel = aktualisiert.Titel,
+                Beschreibung = aktualisiert.Beschreibung,
+                Kategorie = aktualisiert.Kategorie,
+                Prioritaet = aktualisiert.Prioritaet,
+                Status = "Gelöst"
+            });
+
+        Assert.Equal(HttpStatusCode.OK, geloestResponse.StatusCode);
+        var geloest = await geloestResponse.Content.ReadFromJsonAsync<TicketDto>();
+        Assert.Equal("Gelöst", geloest!.Status);
+    }
+
+    [Fact]
     public async Task AntwortAufGeschlossenemTicketLiefertConflict()
     {
         await AnmeldenAsync();
@@ -152,6 +195,56 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task UnbekannteKategorieWirdAbgelehnt()
+    {
+        await AnmeldenAsync();
+
+        var ticket = NeuesTicket();
+        ticket.Kategorie = "KeineGueltigeKategorie";
+
+        var response = await _client.PostAsJsonAsync("/api/tickets", ticket);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UnbekanntePrioritaetWirdAbgelehnt()
+    {
+        await AnmeldenAsync();
+
+        var ticket = NeuesTicket();
+        ticket.Prioritaet = "Extrem";
+
+        var response = await _client.PostAsJsonAsync("/api/tickets", ticket);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UnbekannterStatusWirdAbgelehnt()
+    {
+        await AnmeldenAsync();
+
+        var create = await _client.PostAsJsonAsync(
+            "/api/tickets",
+            NeuesTicket());
+        var ticket = await create.Content.ReadFromJsonAsync<TicketDto>();
+
+        var response = await _client.PutAsJsonAsync(
+            $"/api/tickets/{ticket!.Id}",
+            new TicketAktualisierenDto
+            {
+                Titel = ticket.Titel,
+                Beschreibung = ticket.Beschreibung,
+                Kategorie = ticket.Kategorie,
+                Prioritaet = ticket.Prioritaet,
+                Status = "Unbekannt"
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task LeererAntworttextWirdAbgelehnt()
     {
         await AnmeldenAsync();
@@ -211,7 +304,7 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
         Titel = "Neues Ticket",
         Beschreibung = "Eine ausreichende Beschreibung",
         Kategorie = "Hardware",
-        Prioritaet = "Normal",
+        Prioritaet = "Mittel",
         ErstelltVon = "Integrationstest"
     };
 }

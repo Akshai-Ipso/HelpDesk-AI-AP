@@ -1,0 +1,18 @@
+HelpDesk API - automatisierter Testlauf
+Datum: 17.09.2026
+Befehl: dotnet test HelpDesk.sln --configuration Debug --no-restore
+
+HelpDesk.Api -> HelpDesk.Api/bin/Debug/net8.0/HelpDesk.Api.dll
+HelpDesk.Api.Tests -> HelpDesk.Api.Tests/bin/Debug/net8.0/HelpDesk.Api.Tests.dll
+Testlauf fuer HelpDesk.Api.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest-Version 17.14.1 (x64)
+
+Die Testausfuehrung wird gestartet, bitte warten...
+Insgesamt 1 Testdatei stimmte mit dem angegebenen Muster ueberein.
+
+Bestanden: Fehler: 0, erfolgreich: 22, uebersprungen: 0, gesamt: 22,
+Dauer: 1 s - HelpDesk.Api.Tests.dll (net8.0)
+
+Zusaetzlich ausgefuehrt:
+dotnet format HelpDesk.sln whitespace --no-restore --verify-no-changes
+Ergebnis: erfolgreich, keine Formatabweichungen.

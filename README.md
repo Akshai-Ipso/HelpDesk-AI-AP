@@ -37,15 +37,20 @@ Die SQLite-Datenbank befindet sich in `HelpDesk.Api/helpdesk.db`.
 
 ## Projekt lokal starten
 
-1. Die Solution `HelpDesk.sln` in Visual Studio 2022 öffnen.
-2. `HelpDesk.Api` als Startprojekt festlegen.
-3. Das Projekt mit `F5` oder `Strg + F5` starten.
-4. Swagger wird im Browser geöffnet.
+1. Ein Terminal im Repository-Stamm öffnen.
+2. Vor dem ersten Start einen lokalen JWT-Signaturschlüssel hinterlegen:
 
-Alternativ kann das API-Projekt im Terminal gestartet werden:
-
-```bash
+```powershell
 dotnet user-secrets set "Jwt:Key" "Einen-langen-lokalen-Schluessel-eintragen" --project HelpDesk.Api
+```
+
+3. Die Solution `HelpDesk.sln` in Visual Studio 2022 öffnen.
+4. `HelpDesk.Api` als Startprojekt festlegen.
+5. Das Projekt mit `F5` oder `Strg + F5` starten. Swagger wird im Browser geöffnet.
+
+Alternativ kann das API-Projekt nach Schritt 2 im Terminal gestartet werden:
+
+```powershell
 dotnet run --project HelpDesk.Api
 ```
 
@@ -119,10 +124,12 @@ dotnet test .\HelpDesk.Api.Tests\HelpDesk.Api.Tests.csproj
 Für die KI-Vorschlagsfunktion wurde Variante B, eine simulierte
 KI-Implementierung, gewählt.
 
-Die Klasse `SimulierterKiAntwortGenerator` erzeugt anhand der
-Ticketdaten einen vorlagenbasierten Antwortvorschlag. Diese Variante
-wurde gewählt, weil sie keine externe Abhängigkeit und keinen API-Key
-benötigt und dadurch lokal zuverlässig getestet werden kann.
+Die Klasse `SimulierterKiAntwortGenerator` wertet Titel, Beschreibung und
+Kategorie aus. Schlüsselwörter führen zu unterschiedlichen Vorschlägen für
+Drucker-, Netzwerk-, Passwort-/Zugriffs- und Softwareprobleme. Für andere
+Anliegen wird ein allgemeiner Vorschlag erzeugt. Diese Variante wurde gewählt,
+weil sie keine externe Abhängigkeit und keinen API-Key benötigt und dadurch
+lokal deterministisch getestet werden kann.
 
 Die Abstraktion erfolgt über das Interface `IKiAntwortGenerator`.
 Die konkrete Implementierung wird über Dependency Injection
@@ -290,6 +297,8 @@ geprüft.
 | Zugriff mit falscher Rolle | `TicketsApiTests.LoeschenMitSupportRolleWirdVerboten` |
 | Zugriff mit Teamleitung | `TicketsApiTests.LoeschenMitTeamleitungIstErlaubt` |
 | Leerer Titel, leerer Antworttext und negative ID | `TicketsApiTests` |
+| Ungültige Kategorie, Priorität und Status | `TicketsApiTests` |
+| Regelbasierte Drucker-, Netzwerk- und Passwortvorschläge | `SimulierterKiAntwortGeneratorTests` |
 
 ## Manuelle Endpunktprüfung
 
@@ -325,6 +334,25 @@ Konfliktfällen geprüft.
 - JWT-Signaturschlüssel werden nicht versioniert, sondern über User Secrets
   oder `Jwt__Key` bereitgestellt.
 
+Konkretes Vorher-/Nachher-Beispiel einer behobenen Regelverletzung:
+
+```csharp
+// Vorher: falsche Einrückung innerhalb eines Blocks
+if (ticket is null)
+{
+return NotFound();
+}
+
+// Nachher: vier Leerzeichen pro Blockebene gemäss .editorconfig
+if (ticket is null)
+{
+    return NotFound();
+}
+```
+
+Die betroffenen Controller- und Service-Dateien wurden formatiert. Die
+Formatprüfung stellt sicher, dass die Korrektur nicht wieder verloren geht.
+
 Die Qualitätsprüfung erfolgt mit:
 
 ```powershell
@@ -333,8 +361,40 @@ dotnet test .\HelpDesk.Api.Tests\HelpDesk.Api.Tests.csproj --no-restore
 dotnet format .\HelpDesk.sln whitespace --no-restore --verify-no-changes
 ```
 
-Der Build läuft ohne Warnungen durch. Alle 15 Tests und die
-Whitespace-Formatprüfung sind erfolgreich.
+Der Build läuft ohne Warnungen durch. Alle 22 Tests und die
+Whitespace-Formatprüfung sind erfolgreich. Der gespeicherte Konsolenlauf ist
+unter [Testnachweise/Testlauf-2026-09-17.txt](Testnachweise/Testlauf-2026-09-17.txt)
+nachvollziehbar.
+
+## Anforderungsabgleich
+
+| Bereich | Anforderung | Umsetzung und Nachweis | Status |
+|---|---|---|---|
+| Funktional | Tickets und Antworten vollständig per CRUD verwalten | Controller, Service-Layer, Swagger-Screenshots und Integrationstests | Erfüllt |
+| Funktional | Keine Antwort und kein KI-Vorschlag bei geschlossenem Ticket | Zentrale Prüfung im `TicketService`, Unit-Test und 409-Screenshots | Erfüllt |
+| Funktional | Pagination, Filterung und Sortierung | `GET /api/tickets` mit Query-Parametern und manueller Nachweis | Erfüllt |
+| Funktional | Simulierter KI-Vorschlag nach Kategorie und Beschreibung | `IKiAntwortGenerator`, regelbasierter Generator und drei Testfälle | Erfüllt |
+| Datenqualität | Nur definierte Kategorien, Prioritäten und Statuswerte | Kategorien inkl. `Zugriffsrechte`, Prioritäten `Niedrig`/`Mittel`/`Hoch`/`Kritisch`, Status `Offen`/`InBearbeitung`/`Gelöst`/`Geschlossen`; Positiv- und Negativtests | Erfüllt |
+| Nichtfunktional | Saubere Schichten, DI und nachvollziehbares Logging | Controller, Service, DbContext, KI-Abstraktion und strukturiertes `ILogger` | Erfüllt |
+| Nichtfunktional | Dokumentierte, lokal lauffähige API | Startanleitung, OpenAPI/Swagger, SQLite und Testlaufnachweis | Erfüllt |
+| Qualität | Unit- und Integrationstests sowie Coderichtlinien | 22 Tests, `.editorconfig`, Analyzer und Formatprüfung | Erfüllt |
+| Sicherheit | JWT-Login mit Rollen-Claim | Login-Endpunkt und JWT-Konfiguration | Erfüllt |
+| Sicherheit | 401 ohne Token, 403 mit falscher Rolle, Löschen nur als Teamleitung | Integrationstests und Screenshots unter `Screenshots Testing/6.6 Authentifizierung` | Erfüllt |
+| Sicherheit | Kein aktueller Signaturschlüssel in Konfigurationsdateien | .NET User Secrets bzw. Umgebungsvariable `Jwt__Key` | Erfüllt im aktuellen Stand; Bereinigung des früheren Git-Commits separat nötig |
+
+## Kurzreflexion
+
+Besonders herausfordernd war, Geschäftsregeln nicht mehrfach in den
+Controllern zu verteilen, sondern zentral im Service-Layer umzusetzen. Auch die
+Kombination aus JWT-Authentifizierung, Rollenprüfung und realistischen
+Integrationstests erforderte eine saubere Testkonfiguration mit eigener
+In-Memory-Datenbank und lokalem Testschlüssel.
+
+Beim nächsten Mal würden wir erlaubte Ticketwerte von Anfang an zentral als
+fachliche Konstanten oder Enums modellieren und Sicherheitskonfigurationen vor
+dem ersten Commit über User Secrets einrichten. Zusätzlich würden wir bereits
+während der Entwicklung für jede Anforderung direkt einen automatisierten Test
+und einen nachvollziehbaren Nachweis ergänzen.
 
 ## Änderungsprotokoll
 
@@ -346,3 +406,6 @@ Whitespace-Formatprüfung sind erfolgreich.
 | 11.09.2026 | Manuelle Prüfung und Konfliktfall waren nicht dokumentiert. | Testmatrix mit Request, Antwort und Screenshots ergänzt. |
 | 16.09.2026 | Integrationstests verwendeten noch die frühere API-Key-Authentifizierung. | Tests auf JWT-Login und beide Rollen umgestellt. |
 | 16.09.2026 | JWT-Schlüssel befand sich in der Konfigurationsdatei. | Schlüssel entfernt, ersetzt und lokal über User Secrets gespeichert. |
+| 17.09.2026 | KI-Vorschläge berücksichtigten die Beschreibung nicht. | Regeln für Drucker-, Netzwerk-, Passwort- und Softwareprobleme samt Tests ergänzt. |
+| 17.09.2026 | Beliebige bzw. von der Vorlage abweichende Kategorie-, Prioritäts- und Statuswerte waren möglich. | Werte an die Datenquelle angepasst sowie ein Positiv- und drei Negativtests ergänzt. |
+| 17.09.2026 | Reflexion, Anforderungsabgleich und Testlaufnachweis fehlten. | Dokumentation und gespeicherten Testlauf ergänzt. |
