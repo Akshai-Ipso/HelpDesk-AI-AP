@@ -182,6 +182,37 @@ public class TicketsApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task LoeschenMitVorhandenenAntwortenFunktioniert()
+    {
+        await AnmeldenAsync("teamleitung", "Team123!");
+
+        var create = await _client.PostAsJsonAsync(
+            "/api/tickets",
+            NeuesTicket());
+        var ticket = await create.Content.ReadFromJsonAsync<TicketDto>();
+
+        var antwort = await _client.PostAsJsonAsync(
+            $"/api/tickets/{ticket!.Id}/antworten",
+            new AntwortErstellenDto
+            {
+                Verfasser = "Support",
+                Text = "Erste Antwort auf das Ticket"
+            });
+        Assert.Equal(HttpStatusCode.Created, antwort.StatusCode);
+
+        var response = await _client.DeleteAsync(
+            $"/api/tickets/{ticket.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var nachDemLoeschen = await _client.GetAsync(
+            $"/api/tickets/{ticket.Id}");
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            nachDemLoeschen.StatusCode);
+    }
+
+    [Fact]
     public async Task LeererTitelWirdAbgelehnt()
     {
         await AnmeldenAsync();

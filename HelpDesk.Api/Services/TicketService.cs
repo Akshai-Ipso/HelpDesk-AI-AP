@@ -215,7 +215,15 @@ namespace HelpDesk.Api.Services
 
         public async Task<bool> TicketLoeschenAsync(int id)
         {
-            var ticket = await _dbContext.Tickets.FindAsync(id);
+            // Antworten werden mitgeladen, damit EF Core sie beim
+            // Löschen des Tickets im selben SaveChanges-Aufruf
+            // mit entfernt. Ohne dieses Include kennt der
+            // Change-Tracker die Antworten nicht und SQLite lehnt
+            // das Löschen mit "FOREIGN KEY constraint failed" ab,
+            // solange noch Antworten auf das Ticket verweisen.
+            var ticket = await _dbContext.Tickets
+                .Include(t => t.Antworten)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (ticket is null)
             {
